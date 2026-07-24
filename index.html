@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roleta do Setlist — LU2CA / BOSS RC-3</title>
+  <style>
+    :root {
+      --bg: #171512;
+      --bg-grain: #1c1a16;
+      --panel: #211e1a;
+      --panel-raised: #2c2822;
+      --line: #3c362d;
+      --text: #ede6d9;
+      --text-dim: #a89e8d;
+      --accent: #ff6a1f;
+      --accent-dim: #7a3a1c;
+      --wedge-a: #2c2822;
+      --wedge-b: #221f1a;
+      --lcd: #ffb347;
+      --lcd-bg: #1c1206;
+      --lcd-line: #3a2a12;
+      --focus: #ffb347;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root { color-scheme: dark; }
+    }
+    :root[data-theme="light"], :root[data-theme="dark"] { color-scheme: dark; }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-image:
+        radial-gradient(circle at 18% 8%, rgba(255,255,255,0.035), transparent 40%),
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+      padding: clamp(16px, 4vw, 40px);
+      display: flex;
+      justify-content: center;
+    }
+
+    .rig {
+      width: 100%;
+      max-width: 1180px;
+    }
+
+    header.top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: clamp(20px, 3vw, 32px);
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .eyebrow {
+      font: 600 11px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 3.4vw, 30px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-wrap: balance;
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      font: 600 11px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.06em;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .chip.on {
+      color: #2a1608;
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: clamp(20px, 3vw, 32px);
+      align-items: start;
+    }
+    @media (max-width: 860px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .deck {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: clamp(18px, 3vw, 28px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .wheel-wrap {
+      position: relative;
+      width: min(100%, 440px);
+      aspect-ratio: 1 / 1;
+    }
+
+    .wheel-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      transform: rotate(0deg);
+      will-change: transform;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 20px solid var(--accent);
+      filter: drop-shadow(0 0 6px rgba(255, 106, 31, 0.65));
+      z-index: 3;
+    }
+
+    .lcd {
+      width: 100%;
+      background: var(--lcd-bg);
+      border: 1px solid var(--lcd-line);
+      border-radius: 10px;
+      padding: 14px 18px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+      min-height: 62px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .lcd .slot {
+      font: 700 11px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.14em;
+      color: color-mix(in srgb, var(--lcd) 70%, transparent);
+      text-shadow: 0 0 6px rgba(255,179,71,0.35);
+    }
+
+    .lcd .title {
+      font: 700 18px/1.25 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color: var(--lcd);
+      text-shadow: 0 0 8px rgba(255,179,71,0.45);
+      text-wrap: balance;
+    }
+
+    .lcd .tag {
+      font: 500 11px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color: color-mix(in srgb, var(--lcd) 55%, transparent);
+      letter-spacing: 0.04em;
+    }
+
+    .lcd.flash { animation: flash 0.5s ease-out; }
+    @keyframes flash {
+      0% { box-shadow: inset 0 2px 8px rgba(0,0,0,0.6), 0 0 0 3px rgba(255,179,71,0.5); }
+      100% { box-shadow: inset 0 2px 8px rgba(0,0,0,0.6), 0 0 0 0 rgba(255,179,71,0); }
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .panel-title {
+      font: 600 11px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin: 0 0 10px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: clamp(16px, 2.6vw, 22px);
+    }
+
+    .segmented {
+      display: flex;
+      background: var(--panel-raised);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .segmented button {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      font: 600 12px/1 -apple-system, sans-serif;
+      letter-spacing: 0.03em;
+      padding: 10px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .segmented button.active {
+      background: var(--accent);
+      color: #2a1608;
+    }
+
+    .segmented button:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .segmented button:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .spin-row {
+      display: flex;
+      justify-content: center;
+      padding: 8px 0 4px;
+    }
+
+    .spin-btn {
+      width: 128px;
+      height: 128px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      background: radial-gradient(circle at 32% 28%, #3a342c, var(--panel-raised) 70%);
+      color: var(--accent);
+      font: 700 15px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      box-shadow:
+        0 6px 0 var(--accent-dim),
+        0 10px 18px rgba(0,0,0,0.45),
+        inset 0 2px 3px rgba(255,255,255,0.08);
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+    }
+
+    .spin-btn:active,
+    .spin-btn.pressed {
+      transform: translateY(4px);
+      box-shadow:
+        0 2px 0 var(--accent-dim),
+        0 4px 8px rgba(0,0,0,0.4),
+        inset 0 2px 3px rgba(255,255,255,0.05);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .spin-btn:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 4px;
+    }
+
+    .setlist {
+      max-height: 520px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .setlist::-webkit-scrollbar { width: 8px; }
+    .setlist::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: baseline;
+      padding: 6px 4px;
+      border-bottom: 1px dashed var(--line);
+    }
+    .row:last-child { border-bottom: none; }
+
+    .row .num {
+      font: 600 12px/1.3 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row .name {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .row .tagline {
+      display: block;
+      font: 500 10.5px/1.2 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      color: var(--text-dim);
+      margin-top: 1px;
+      letter-spacing: 0.02em;
+    }
+
+    .row .tagline.guess {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .row .tagline.todo {
+      color: var(--lcd);
+      font-style: italic;
+    }
+
+    .row.empty .name {
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    .row.active {
+      background: rgba(255,106,31,0.1);
+      border-radius: 8px;
+    }
+    .row.active .name { color: var(--accent); }
+
+    .tabs {
+      max-width: 360px;
+      margin-bottom: clamp(18px, 3vw, 26px);
+    }
+
+    .add-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .add-form label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font: 600 10.5px/1 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .add-form input {
+      font: 500 14px/1.3 -apple-system, sans-serif;
+      background: var(--panel-raised);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+    }
+
+    .add-form input:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .form-row > label { flex: 1; }
+
+    .ghost-btn {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-dim);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: 600 11px/1 -apple-system, sans-serif;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .ghost-btn:hover { color: var(--text); border-color: var(--accent-dim); }
+    .ghost-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .primary-btn {
+      flex: 1;
+      background: var(--accent);
+      color: #2a1608;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font: 700 13px/1 -apple-system, sans-serif;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+    }
+    .primary-btn:hover { filter: brightness(1.08); }
+    .primary-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    .manage-list .row {
+      grid-template-columns: 34px 1fr auto;
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-dim);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font: 600 10.5px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      cursor: pointer;
+    }
+    .icon-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+    .icon-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+    .hint {
+      font-size: 11.5px;
+      color: var(--text-dim);
+      margin: -6px 0 4px;
+    }
+
+    footer.note {
+      margin-top: 22px;
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wheel-wrap svg { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="rig">
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">LU2CA · BOSS RC-3</span>
+      <h1>Roleta do Setlist</h1>
+    </div>
+    <div class="stats">
+      <span class="chip on" id="statFilled">62 na roleta</span>
+      <span class="chip" id="statFree">37 slots livres</span>
+    </div>
+  </header>
+
+  <div class="segmented tabs" id="tabNav">
+    <button type="button" data-tab="roleta" class="active">Roleta</button>
+    <button type="button" data-tab="manage">Adicionar Música</button>
+  </div>
+
+  <section id="view-roleta">
+    <div class="layout">
+      <div class="deck">
+        <div class="wheel-wrap" id="wheelWrap">
+          <div class="pointer"></div>
+          <svg id="wheelSvg" viewBox="0 0 400 400"></svg>
+        </div>
+        <div class="lcd" id="lcd">
+          <span class="slot" id="lcdSlot">SLOT —</span>
+          <span class="title" id="lcdTitle">Pronta pra girar</span>
+          <span class="tag" id="lcdTag">Define o giro e aperta GIRAR</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="card">
+          <p class="panel-title">Sentido do giro</p>
+          <div class="segmented" id="dirGroup">
+            <button type="button" data-dir="1" class="active">⟳ Horário</button>
+            <button type="button" data-dir="-1">⟲ Anti-horário</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="panel-title">Intensidade</p>
+          <div class="segmented" id="intGroup">
+            <button type="button" data-int="light">Leve</button>
+            <button type="button" data-int="medium" class="active">Médio</button>
+            <button type="button" data-int="strong">Forte</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="spin-row">
+            <button type="button" class="spin-btn" id="spinBtn">GIRAR</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="panel-title">Setlist completo (001–099)</p>
+          <div class="setlist" id="setlist"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="note">Roleta sorteia só entre as memórias com faixa gravada — os slots livres e as faixas "a gravar" ficam de fora do giro.</footer>
+  </section>
+
+  <section id="view-manage" class="card" hidden>
+    <p class="panel-title">Adicionar música à roleta</p>
+    <form class="add-form" id="addForm">
+      <div class="form-row">
+        <label>Slot (001–099)
+          <input type="number" id="fSlot" min="1" max="99" required>
+        </label>
+        <button type="button" class="ghost-btn" id="useFreeSlot">Usar próximo livre</button>
+      </div>
+      <label>Nome da música
+        <input type="text" id="fTitle" maxlength="60" required>
+      </label>
+      <label>Info extra (tom, BPM, "Instrumental", "a gravar"...)
+        <input type="text" id="fTag" maxlength="48">
+      </label>
+      <p class="hint" id="slotWarning"></p>
+      <div class="form-actions">
+        <button type="submit" class="primary-btn" id="submitBtn">Adicionar à roleta</button>
+        <button type="button" class="ghost-btn" id="cancelEditBtn" hidden>Cancelar edição</button>
+      </div>
+    </form>
+
+    <p class="panel-title" style="margin-top:26px;">Todas as memórias (001–099)</p>
+    <div class="setlist manage-list" id="manageList"></div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var GUESS_TAG = "fictício · inspirado no setlist";
+  var TODO_TAG = "CIDADE NEON · ainda não gravada no RC-3";
+  var STORAGE_KEY = "rc3-roleta-slots-v1";
+
+  var DEFAULT_SLOTS = [
+    ["Starboy", null],
+    ["Tudo é pra sempre agora", null],
+    ["NECTAR", null],
+    ["Natural Mystic", null],
+    ["Quero dizer", null],
+    ["Ela me faz", "Am · 84 BPM"],
+    ["Beira da piscina", "Ebm · 88 BPM"],
+    ["Is This Love", "A · 123 BPM"],
+    ["I'm Still in Love", "Am · 87 BPM"],
+    ["Fato consumado", "G · 95 BPM"],
+    ["How to Fly", "Gm · 76 BPM"],
+    ["Imprevisto", "Bm · 76 BPM"],
+    ["Mas que nada", "G#m · 90 BPM"],
+    ["Pontes indestrutíveis", "Bm · 79 BPM"],
+    ["Praise Jah", "F#m · 125 BPM"],
+    ["Que nem o meu cachorro", "Dm · 88 BPM"],
+    ["Skankin' Sweet", "Cm · 78 BPM"],
+    ["Rainha da finesse", "Ebm · 130 BPM"],
+    ["Uptown Funk", "Cm · 115 BPM"],
+    ["4AM", "Matuê"],
+    ["Avareza", null],
+    ["Azul Jah Van", null],
+    ["Yummy", null],
+    ["Baby te liguei", null],
+    ["Back on 74", null],
+    ["Clint Eastwood", null],
+    ["Dois amores", null],
+    ["Eternal Light", null],
+    ["Feels Like Summer", null],
+    ["Girls", null],
+    ["Hey Baby", null],
+    ["Madrugada maldita", null],
+    ["Meu filho", null],
+    ["S-E-X-O", null],
+    ["Virgem", null],
+    ["NECTAR", "Instrumental"],
+    ["DOPAMINA", "Instrumental"],
+    ["COPO AMERICANO", "Instrumental"],
+    ["Ojalá", "Instrumental"],
+    ["SWAV", "Instrumental"],
+    ["SEXTAFEIRA", "Instrumental"],
+    ["SABE ONTEM?", "Instrumental"],
+    ["ROLLERCOASTER", "Instrumental"],
+    ["CHUVA", "Instrumental"],
+    ["Madrugada Jah", GUESS_TAG],
+    ["Beira do Fato", GUESS_TAG],
+    ["Chuva na Piscina", GUESS_TAG],
+    ["Avareza Doce", GUESS_TAG],
+    ["Girls Indestrutíveis", GUESS_TAG],
+    ["Sextafeira Eterna", GUESS_TAG],
+    ["Rainha do Amor", GUESS_TAG],
+    ["Still Uptown", GUESS_TAG],
+    ["Cachorro Voador", GUESS_TAG],
+    ["Finesse Selvagem", GUESS_TAG],
+    ["Baby 74", GUESS_TAG],
+    ["Nectar da Madrugada", GUESS_TAG],
+    ["astronauta", TODO_TAG],
+    ["cliche", TODO_TAG],
+    ["Feels Like Jah", GUESS_TAG],
+    ["Virgem do Rollercoaster", GUESS_TAG],
+    ["Sabe o Imprevisto?", GUESS_TAG],
+    ["Clint às Seis", GUESS_TAG],
+    ["Copo de Dopamina", GUESS_TAG],
+    ["hollywood", TODO_TAG],
+    ["Hey Starboy", GUESS_TAG],
+    ["Eterno Ojalá", GUESS_TAG],
+    ["circo", TODO_TAG],
+    ["stylist", TODO_TAG],
+    ["oasis", TODO_TAG],
+    ["qm é vc?", TODO_TAG],
+    null, null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null, null,
+    null, null, null, null, null, null, null, null, null, null, null
+  ];
+
+  function loadSlots() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length === 99) return parsed;
+      }
+    } catch (e) {}
+    return DEFAULT_SLOTS.map(function (s) { return s ? s.slice() : null; });
+  }
+
+  function saveSlots() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(SLOTS));
+  }
+
+  var SLOTS = loadSlots();
+  var wheelTracks = [];
+  var n = 0;
+  var step = 0;
+  var rowEls = [];
+  var manageRowEls = [];
+
+  var ns = "http://www.w3.org/2000/svg";
+  var svg = document.getElementById("wheelSvg");
+  var cx = 200, cy = 200, r = 188, hub = 34;
+
+  function polar(angleDeg, radius) {
+    var a = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) };
+  }
+
+  function renderStats() {
+    document.getElementById("statFilled").textContent = wheelTracks.length + " na roleta";
+    document.getElementById("statFree").textContent = (SLOTS.length - wheelTracks.length) + " slots livres";
+  }
+
+  function tagClass(tag) {
+    if (tag === GUESS_TAG) return " guess";
+    if (tag === TODO_TAG) return " todo";
+    return "";
+  }
+
+  function renderLegend() {
+    var setlistEl = document.getElementById("setlist");
+    setlistEl.innerHTML = "";
+    rowEls = [];
+    SLOTS.forEach(function (s, i) {
+      var row = document.createElement("div");
+      row.className = "row" + (s ? "" : " empty");
+      var num = String(i + 1).padStart(3, "0");
+      row.innerHTML = s
+        ? '<span class="num">' + num + '</span><span class="name">' + s[0] + (s[1] ? '<span class="tagline' + tagClass(s[1]) + '">' + s[1] + '</span>' : '') + '</span>'
+        : '<span class="num">' + num + '</span><span class="name">— livre —</span>';
+      setlistEl.appendChild(row);
+      rowEls[i] = row;
+    });
+  }
+
+  function renderManageList() {
+    var listEl = document.getElementById("manageList");
+    listEl.innerHTML = "";
+    manageRowEls = [];
+    SLOTS.forEach(function (s, i) {
+      var row = document.createElement("div");
+      row.className = "row" + (s ? "" : " empty");
+      var num = String(i + 1).padStart(3, "0");
+      var nameHtml = s
+        ? s[0] + (s[1] ? '<span class="tagline' + tagClass(s[1]) + '">' + s[1] + '</span>' : '')
+        : "— livre —";
+      var actionsHtml = '<div class="row-actions">' +
+        '<button type="button" class="icon-btn" data-act="edit" data-idx="' + i + '">' + (s ? "editar" : "usar") + '</button>' +
+        (s ? '<button type="button" class="icon-btn" data-act="remove" data-idx="' + i + '">remover</button>' : "") +
+        '</div>';
+      row.innerHTML = '<span class="num">' + num + '</span><span class="name">' + nameHtml + '</span>' + actionsHtml;
+      listEl.appendChild(row);
+      manageRowEls[i] = row;
+    });
+  }
+
+  function renderWheel() {
+    wheelTracks = [];
+    SLOTS.forEach(function (s, i) {
+      if (s) wheelTracks.push({ num: i + 1, title: s[0], tag: s[1] });
+    });
+    n = wheelTracks.length;
+    step = n ? 360 / n : 0;
+
+    svg.innerHTML = "";
+    svg.style.transition = "none";
+    svg.style.transform = "rotate(0deg)";
+    currentRotation = 0;
+
+    var group = document.createElementNS(ns, "g");
+    svg.appendChild(group);
+
+    wheelTracks.forEach(function (t, i) {
+      var start = i * step;
+      var end = start + step;
+      var mid = (start + end) / 2;
+      var p1 = polar(start, r);
+      var p2 = polar(end, r);
+      var large = (end - start) > 180 ? 1 : 0;
+
+      var path = document.createElementNS(ns, "path");
+      path.setAttribute("d", "M " + cx + " " + cy + " L " + p1.x + " " + p1.y + " A " + r + " " + r + " 0 " + large + " 1 " + p2.x + " " + p2.y + " Z");
+      path.setAttribute("fill", i % 2 === 0 ? "var(--wedge-a)" : "var(--wedge-b)");
+      path.setAttribute("stroke", "var(--line)");
+      path.setAttribute("stroke-width", "1");
+      group.appendChild(path);
+
+      var labelPos = polar(mid, r * 0.87);
+      var text = document.createElementNS(ns, "text");
+      text.setAttribute("x", labelPos.x);
+      text.setAttribute("y", labelPos.y);
+      text.setAttribute("transform", "rotate(" + mid + " " + labelPos.x + " " + labelPos.y + ")");
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "middle");
+      text.setAttribute("font-family", "ui-monospace, SF Mono, Menlo, Consolas, monospace");
+      text.setAttribute("font-size", "9");
+      text.setAttribute("font-weight", "600");
+      text.setAttribute("fill", "var(--text)");
+      text.textContent = String(t.num).padStart(2, "0");
+      group.appendChild(text);
+    });
+
+    var hubCircle = document.createElementNS(ns, "circle");
+    hubCircle.setAttribute("cx", cx);
+    hubCircle.setAttribute("cy", cy);
+    hubCircle.setAttribute("r", hub);
+    hubCircle.setAttribute("fill", "var(--panel-raised)");
+    hubCircle.setAttribute("stroke", "var(--accent)");
+    hubCircle.setAttribute("stroke-width", "2.5");
+    svg.appendChild(hubCircle);
+
+    var hubText = document.createElementNS(ns, "text");
+    hubText.setAttribute("x", cx);
+    hubText.setAttribute("y", cy);
+    hubText.setAttribute("text-anchor", "middle");
+    hubText.setAttribute("dominant-baseline", "middle");
+    hubText.setAttribute("font-family", "ui-monospace, SF Mono, Menlo, Consolas, monospace");
+    hubText.setAttribute("font-size", "10");
+    hubText.setAttribute("font-weight", "700");
+    hubText.setAttribute("letter-spacing", "0.5");
+    hubText.setAttribute("fill", "var(--accent)");
+    hubText.textContent = "RC-3";
+    svg.appendChild(hubText);
+
+    lcdSlot.textContent = "SLOT —";
+    lcdTitle.textContent = "Pronta pra girar";
+    lcdTag.textContent = "Define o giro e aperta GIRAR";
+    lastActiveRow = null;
+  }
+
+  function renderAll() {
+    renderStats();
+    renderLegend();
+    renderManageList();
+    renderWheel();
+  }
+
+  document.getElementById("tabNav").addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn) return;
+    this.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    var tab = btn.dataset.tab;
+    document.getElementById("view-roleta").hidden = tab !== "roleta";
+    document.getElementById("view-manage").hidden = tab !== "manage";
+  });
+
+  var direction = 1;
+  var intensity = "medium";
+  var spinning = false;
+  var currentRotation = 0;
+
+  var presets = {
+    light: { spins: 3, duration: 1600 },
+    medium: { spins: 6, duration: 2600 },
+    strong: { spins: 10, duration: 4000 }
+  };
+
+  document.getElementById("dirGroup").addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn || spinning) return;
+    direction = parseInt(btn.dataset.dir, 10);
+    this.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+  });
+
+  document.getElementById("intGroup").addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn || spinning) return;
+    intensity = btn.dataset.int;
+    this.querySelectorAll("button").forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+  });
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var spinBtn = document.getElementById("spinBtn");
+  var lcd = document.getElementById("lcd");
+  var lcdSlot = document.getElementById("lcdSlot");
+  var lcdTitle = document.getElementById("lcdTitle");
+  var lcdTag = document.getElementById("lcdTag");
+  var lastActiveRow = null;
+
+  spinBtn.addEventListener("click", function () {
+    if (spinning || n === 0) return;
+    spinning = true;
+    spinBtn.disabled = true;
+
+    var targetIndex = Math.floor(Math.random() * n);
+    var targetMid = targetIndex * step + step / 2;
+    var targetMod = ((-targetMid) % 360 + 360) % 360;
+    var currentMod = ((currentRotation % 360) + 360) % 360;
+    var preset = presets[intensity];
+    var delta;
+
+    if (direction === 1) {
+      delta = ((targetMod - currentMod) % 360 + 360) % 360;
+      currentRotation += delta + preset.spins * 360;
+    } else {
+      delta = ((currentMod - targetMod) % 360 + 360) % 360;
+      currentRotation -= delta + preset.spins * 360;
+    }
+
+    var duration = reduceMotion ? 0 : preset.duration;
+    svg.style.transition = "transform " + duration + "ms cubic-bezier(0.13,0.71,0.24,1)";
+    svg.style.transform = "rotate(" + currentRotation + "deg)";
+
+    var track = wheelTracks[targetIndex];
+
+    function onDone() {
+      svg.removeEventListener("transitionend", onDone);
+      spinning = false;
+      spinBtn.disabled = false;
+      lcdSlot.textContent = "SLOT " + String(track.num).padStart(3, "0");
+      lcdTitle.textContent = track.title;
+      lcdTag.textContent = track.tag || "Pronta pra tocar";
+      lcd.classList.remove("flash");
+      void lcd.offsetWidth;
+      lcd.classList.add("flash");
+
+      if (lastActiveRow) lastActiveRow.classList.remove("active");
+      var row = rowEls[track.num - 1];
+      row.classList.add("active");
+      row.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      lastActiveRow = row;
+    }
+
+    if (duration === 0) {
+      requestAnimationFrame(onDone);
+    } else {
+      svg.addEventListener("transitionend", onDone);
+    }
+  });
+
+  var addForm = document.getElementById("addForm");
+  var fSlot = document.getElementById("fSlot");
+  var fTitle = document.getElementById("fTitle");
+  var fTag = document.getElementById("fTag");
+  var submitBtn = document.getElementById("submitBtn");
+  var cancelEditBtn = document.getElementById("cancelEditBtn");
+  var slotWarning = document.getElementById("slotWarning");
+  var useFreeSlotBtn = document.getElementById("useFreeSlot");
+  var editingIndex = null;
+
+  function nextFreeSlotIndex() {
+    for (var i = 0; i < SLOTS.length; i++) if (!SLOTS[i]) return i;
+    return -1;
+  }
+
+  function resetForm() {
+    addForm.reset();
+    editingIndex = null;
+    submitBtn.textContent = "Adicionar à roleta";
+    cancelEditBtn.hidden = true;
+    slotWarning.textContent = "";
+  }
+
+  useFreeSlotBtn.addEventListener("click", function () {
+    var idx = nextFreeSlotIndex();
+    if (idx === -1) {
+      slotWarning.textContent = "Não sobrou nenhum slot livre — remove algo antes.";
+      return;
+    }
+    fSlot.value = idx + 1;
+    slotWarning.textContent = "";
+    fTitle.focus();
+  });
+
+  document.getElementById("manageList").addEventListener("click", function (e) {
+    var btn = e.target.closest("button");
+    if (!btn) return;
+    var idx = parseInt(btn.dataset.idx, 10);
+    var act = btn.dataset.act;
+
+    if (act === "remove") {
+      var s = SLOTS[idx];
+      if (!s) return;
+      if (!confirm('Remover "' + s[0] + '" do slot ' + String(idx + 1).padStart(3, "0") + "?")) return;
+      SLOTS[idx] = null;
+      if (editingIndex === idx) resetForm();
+      saveSlots();
+      renderAll();
+      return;
+    }
+
+    if (act === "edit") {
+      var slot = SLOTS[idx];
+      fSlot.value = idx + 1;
+      fTitle.value = slot ? slot[0] : "";
+      fTag.value = slot && slot[1] ? slot[1] : "";
+      editingIndex = idx;
+      submitBtn.textContent = "Salvar edição";
+      cancelEditBtn.hidden = false;
+      slotWarning.textContent = "";
+      fTitle.focus();
+      addForm.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    }
+  });
+
+  cancelEditBtn.addEventListener("click", resetForm);
+
+  addForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var slotNum = parseInt(fSlot.value, 10);
+    if (!slotNum || slotNum < 1 || slotNum > 99) {
+      slotWarning.textContent = "Escolhe um slot de 001 a 099.";
+      return;
+    }
+    var title = fTitle.value.trim();
+    if (!title) {
+      slotWarning.textContent = "Escreve o nome da música.";
+      return;
+    }
+    var tag = fTag.value.trim() || null;
+    var idx = slotNum - 1;
+
+    if (SLOTS[idx] && editingIndex !== idx) {
+      if (!confirm('O slot ' + String(slotNum).padStart(3, "0") + ' já tem "' + SLOTS[idx][0] + '". Substituir?')) return;
+    }
+
+    SLOTS[idx] = [title, tag];
+    saveSlots();
+    renderAll();
+    resetForm();
+  });
+
+  renderAll();
+})();
+</script>
+
+</body>
+</html>
