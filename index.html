@@ -345,6 +345,13 @@
       font-style: italic;
     }
 
+    .row .tagline.processing {
+      color: #4db8ff;
+      font-style: italic;
+    }
+
+    .row.processing-row .name { color: #4db8ff; opacity: 0.75; }
+
     .row.empty .name {
       color: var(--text-dim);
       font-style: italic;
@@ -619,6 +626,7 @@
 (function () {
   var GUESS_TAG = "fictício · inspirado no setlist";
   var TODO_TAG = "CIDADE NEON · ainda não gravada no RC-3";
+  var PROCESSING_TAG = "processando · aguardando upload RC-3";
   var STORAGE_KEY = "rc3-roleta-slots-v1";
 
   var DEFAULT_SLOTS = [
@@ -627,7 +635,7 @@
     ["Ela me faz", "Am · 84 BPM"],
     ["Avareza", null],
     ["Madrugada maldita", null],
-    ["stylist", "Instrumental"],
+    ["stylist", PROCESSING_TAG],
     ["Yummy", null],
     ["Girls", null],
     ["Skankin\' Sweet", "Cm · 78 BPM"],
@@ -645,13 +653,13 @@
     ["Beira da piscina", "Ebm · 88 BPM"],
     ["Clint Eastwood", null],
     ["Starboy", null],
-    ["circo", "Instrumental"],
+    ["circo", PROCESSING_TAG],
     ["S-E-X-O", null],
     ["Pontes indestrutíveis", "Bm · 79 BPM"],
     ["Uptown Funk", "Cm · 115 BPM"],
     ["NECTAR", null],
     ["Meu filho", null],
-    ["qm é vc?", "Instrumental"],
+    ["qm é vc?", PROCESSING_TAG],
     ["Feels Like Summer", null],
     ["Azul Jah Van", null],
     ["Natural Mystic", null],
@@ -663,10 +671,10 @@
     ["Rainha da finesse", "Ebm · 130 BPM"],
     ["Tudo é pra sempre agora", null],
     ["Is This Love", "A · 123 BPM"],
-    ["oasis", "Instrumental"],
-    ["cliche", "Instrumental"],
+    ["oasis", PROCESSING_TAG],
+    ["cliche", PROCESSING_TAG],
     ["SABE ONTEM?", "Instrumental"],
-    ["náufrago", "Instrumental"],
+    ["náufrago", PROCESSING_TAG],
     ["DOPAMINA", "Instrumental"],
     ["SEXTAFEIRA", "Instrumental"],
     ["Ojalá", "Instrumental"],
@@ -762,6 +770,7 @@
   function tagClass(tag) {
     if (tag === GUESS_TAG) return " guess";
     if (tag === TODO_TAG) return " todo";
+    if (tag === PROCESSING_TAG) return " processing";
     return "";
   }
 
@@ -771,7 +780,8 @@
     rowEls = [];
     SLOTS.forEach(function (s, i) {
       var row = document.createElement("div");
-      row.className = "row" + (s ? "" : " empty");
+      var isProcessing = s && s[1] === PROCESSING_TAG;
+      row.className = "row" + (s ? "" : " empty") + (isProcessing ? " processing-row" : "");
       var num = String(i + 1).padStart(3, "0");
       row.innerHTML = s
         ? '<span class="num">' + num + '</span><span class="name">' + s[0] + (s[1] ? '<span class="tagline' + tagClass(s[1]) + '">' + s[1] + '</span>' : '') + '</span>'
@@ -805,7 +815,7 @@
   function renderWheel() {
     wheelTracks = [];
     SLOTS.forEach(function (s, i) {
-      if (s) wheelTracks.push({ num: i + 1, title: s[0], tag: s[1] });
+      if (s && s[1] !== PROCESSING_TAG) wheelTracks.push({ num: i + 1, title: s[0], tag: s[1] });
     });
     n = wheelTracks.length;
     step = n ? 360 / n : 0;
